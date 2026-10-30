@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Dynamic Menu Ext Generator</title>
+<style>
+*{box-sizing:border-box;font-family:system-ui}
+body{background:#111;color:#eee;padding:16px;max-width:1200px;margin:0 auto}
+#out{white-space:pre-wrap;background:#1a1a1a;padding:12px;border-radius:8px;overflow-x:auto;color:#9cf;font-size:13px}
+.err{color:#f77}
+</style>
+</head>
+<body>
+<h2>动态Menu扩展生成器</h2>
+<div id="out"></div>
+<script>
+(async ()=>{
+  const $out = document.getElementById('out');
+  const params = new URLSearchParams(location.search);
+  const raw = params.get('menu_json');
+  // 内嵌扩展模板，占位符 {{MENU_ARRAY}} {{EXT_ID}}
+  const tpl = `(function(Scratch) {
+  'use strict';
+  class DynamicMenuGen {
+    getInfo() {
+      return {
+        id: '{{EXT_ID}}',
+        name: "远程动态菜单",
+        blocks: [
+          {
+            opcode: "pickItem",
+            blockType: Scratch.BlockType.REPORTER,
+            text: "选择 [SEL]",
+            arguments: {
+              SEL: {
+                type: Scratch.ArgumentType.STRING,
+                menu: "theMenu"
+              }
+            }
+          }
+        ],
+        menus: {
+          theMenu: {
+            items: {{MENU_ARRAY}}
+          }
+        }
+      };
+    }
+    pickItem(args) {
+      return args.SEL;
+    }
+  }
+  Scratch.extensions.register(new DynamicMenuGen());
+})(Scratch);`;
+
+  if(!raw){
+    $out.textContent = `缺少参数
+用法示例：
+?menu_json=%5B%22第一项%22,%22第二项%22%5D
+
+原始数组示例：["第一项","第二项"]
+需要先做URL编码！`;
+    return;
+  }
+  try{
+    const menu = JSON.parse(decodeURIComponent(raw));
+    const extId = "dynmenu_" + Math.random().toString(36).slice(2,12);
+    let res = tpl
+      .replace("{{MENU_ARRAY}}", JSON.stringify(menu))
+      .replace("{{EXT_ID}}", extId);
+    $out.textContent = res;
+  }catch(e){
+    $out.innerHTML = `<span class="err">解析失败：${e.message}</span>`;
+  }
+})();
+</script>
+</body>
+</html>
