@@ -1,1 +1,3 @@
-# dropdown_menu
+# Better_dropdown_menu
+Better_dropdown_menu是参考SharkPool，CST1229，0znzw的Dropdown Maker的一种网络请求式动态menu，通过menu_json参数来得到定制的menu扩展。
+###项目使用MIT开源协议
